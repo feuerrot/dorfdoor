@@ -1,0 +1,12 @@
+*.hex
+*.eep
+*.cof
+*.elf
+*.map
+*.sym
+*.lss
+build
+main.s
+main.d
+main.i
+.dep

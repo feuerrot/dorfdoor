@@ -13,15 +13,28 @@ volatile uint8_t enc_delta;
 volatile uint8_t lastchar;
 volatile uint8_t resetoverflow;
 
-char resettext[] = "[x] Reset\n";
-char openhs[] = "* hackerspace opened\n";
-char closedhs[] = "* hackerspace closed\n";
-char dooror1[] = "* door open via ssh stage 1\n";
-char dooror2[] = "* door open via ssh stage 2, opened\n";
-char dooror3[] = "* door open via ssh error, stage 2 before stage 1 or two times stage 1!\n";
-char dooropened[] = "* door opened via switch\n";
-char bell[] = "* someone is at the door\n";
-char resetof[] = "* stage resetted\n";
+#if DEBUG
+	char resettext[]	=	"[x] Reset\n";
+	char openhs[]		=	"* hackerspace opened\n";
+	char closedhs[]		=	"* hackerspace closed\n";
+	char dooror1[]		=	"* ssh stage 1\n";
+	char dooror2[]		=	"* ssh stage 2, opened\n";
+	char dooror3[]		=	"* stage error\n";
+	char dooropened[]	=	"* door opened via switch\n";
+	char bell[]			=	"* someone is at the door\n";
+	char resetof[] 		=	"* stage resetted\n";
+#else
+	char resettext[]	=	"p\n";	// power on
+	char openhs[]		=	"o\n";	// hackerspace open
+	char closedhs[]		=	"c\n";	// hackerspace closed
+	char dooror1[]		=	"1\n";	// ssh stage 1
+	char dooror2[]		=	"2\n";	// ssh stage 2
+	char dooror3[]		=	"e\n";	// ssh error
+	char dooropened[]	=	"s\n";	// open via switch
+	char bell[]			=	"b\n";	// bell
+	char resetof[]		=	"r\n";	// ssh stage reset
+#endif
+
 
 volatile struct {
 	unsigned dooropenstage1:1;

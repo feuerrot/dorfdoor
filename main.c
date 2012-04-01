@@ -24,22 +24,25 @@ volatile uint8_t resetoverflow;
 	char bell[]			=	"* someone is at the door\n";
 	char resetof[] 		=	"* stage resetted\n";
 #else
-	char resettext[]	=	"p\n";	// power on
-	char openhs[]		=	"o\n";	// hackerspace open
-	char closedhs[]		=	"c\n";	// hackerspace closed
-	char dooror1[]		=	"1\n";	// ssh stage 1
-	char dooror2[]		=	"2\n";	// ssh stage 2
-	char dooror3[]		=	"e\n";	// ssh error
-	char dooropened[]	=	"s\n";	// open via switch
-	char bell[]			=	"b\n";	// bell
-	char resetof[]		=	"r\n";	// ssh stage reset
+	char resettext[]	=	"p";	// power on
+	char openhs[]		=	"o";	// hackerspace open
+	char closedhs[]		=	"c";	// hackerspace closed
+	char dooror1[]		=	"1";	// ssh stage 1
+	char dooror2[]		=	"2";	// ssh stage 2
+	char dooror3[]		=	"e";	// ssh error
+	char dooropened[]	=	"s";	// open via switch
+	char bell[]			=	"b";	// bell
+	char resetof[]		=	"r";	// ssh stage reset
 #endif
 
+uint8_t toggledoor;
+#define DOORTOGGLE 20
 
 volatile struct {
 	unsigned dooropenstage1:1;
 	unsigned dooropenstage2:1;
 	unsigned openhackerspace:1;
+	unsigned openhackerspaceold:1;
 	unsigned bell:1;
 } flags;
 
@@ -68,6 +71,16 @@ int main(void) {
 	init();
 
 	while(1) {
+		if (flags.openhackerspace != flags.openhackerspaceold){
+			flags.openhackerspaceold = flags.openhackerspace;
+			if (flags.openhackerspace){
+				PORTD |= (1<<PD4);
+				serputs(openhs);
+			} else {
+				PORTD &= ~(1<<PD4);
+				serputs(closedhs);
+			}
+		}
 		if (flags.openhackerspace){
 			if (!(PIND & (1<<PD2))){
 				PORTD |= (1<<PD3);
@@ -94,6 +107,16 @@ int main(void) {
 			PORTD &= ~(1<<PD3);
 		}
 
+		if (ENC_T){
+			toggledoor = 0;
+		} else {
+			toggledoor++;
+		}
+		if (toggledoor > DOORTOGGLE){
+			flags.openhackerspace ^= 1;
+			toggledoor = 0;
+		}
+
 		_delay_ms(100);
 	}
 	return 0;
@@ -107,14 +130,10 @@ ISR(USART_RXC_vect){
 			break;
 		case 'd':
 			if (flags.dooropenstage1){
-				#if DEBUG
 				serputs(dooror3);
-				#endif
 			} else {
 				flags.dooropenstage1 = 1;
-				#if DEBUG
 				serputs(dooror1);
-				#endif
 			}
 			break;
 		case 'b':
@@ -122,22 +141,15 @@ ISR(USART_RXC_vect){
 				flags.dooropenstage2 = 1;
 				flags.dooropenstage1 = 0;
 			} else {
-				#if DEBUG
 				serputs(dooror3);
-				#endif
 			}
 			break;
 		case 'o':
-			flags.dooropenstage1 = 0;
 			flags.openhackerspace = 1;
-			PORTD |= (1<<PD4);
-			serputs(openhs);
 			break;
 		case 'c':
-			flags.dooropenstage1 = 0;
 			flags.openhackerspace = 0;
-			PORTD &= ~(1<<PD4);
-			serputs(closedhs);
+			break;
 		default:
 			flags.dooropenstage1 = 0;
 			break;
@@ -163,9 +175,7 @@ ISR(TIMER2_OVF_vect){
 		flags.dooropenstage1 = 0;
 		flags.dooropenstage2 = 0;
 		flags.bell = 0;
-		#if DEBUG
 		serputs(resetof);
-		#endif
 	}
 	resetoverflow++;
 }

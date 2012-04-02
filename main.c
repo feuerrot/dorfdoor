@@ -67,6 +67,13 @@ void init(void){
 	serputs(resettext);
 }
 
+void laa(uint8_t state){
+	if (state)
+		PORTC |= 0b1111;
+	else
+		PORTC &= ~0b1111;
+}
+
 int main(void) {
 	init();
 
@@ -75,9 +82,11 @@ int main(void) {
 			flags.openhackerspaceold = flags.openhackerspace;
 			if (flags.openhackerspace){
 				PORTD |= (1<<PD4);
+				laa(1);
 				serputs(openhs);
 			} else {
 				PORTD &= ~(1<<PD4);
+				laa(0);
 				serputs(closedhs);
 			}
 		}
@@ -86,10 +95,12 @@ int main(void) {
 				PORTD |= (1<<PD3);
 				_delay_ms(10);
 				PORTD &= ~(1<<PD4);
+				laa(0);
 				_delay_ms(90);
 				PORTD &= ~(1<<PD3);
 				_delay_ms(300);
 				PORTD |= (1<<PD4);
+				laa(1);
 				serputs(dooropened);
 			}
 		} else {

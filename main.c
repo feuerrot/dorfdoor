@@ -23,6 +23,8 @@ volatile uint8_t resetoverflow;
 	char dooropened[]	=	"* door opened via switch\n";
 	char bell[]			=	"* someone is at the door\n";
 	char resetof[] 		=	"* stage resetted\n";
+	char statuso[]		=	"STATUS: OPEN\n";
+	char status[]		=	"STATUS: CLOSED\n";
 #else
 	char resettext[]	=	"p";	// power on
 	char openhs[]		=	"o";	// hackerspace open
@@ -33,6 +35,8 @@ volatile uint8_t resetoverflow;
 	char dooropened[]	=	"s";	// open via switch
 	char bell[]			=	"b";	// bell
 	char resetof[]		=	"r";	// ssh stage reset
+	char statuso[]		=	"SO";
+	char statusc[]		=	"SC";
 #endif
 
 uint8_t toggledoor;
@@ -161,6 +165,12 @@ ISR(USART_RXC_vect){
 		case 'c':
 			flags.openhackerspace = 0;
 			break;
+		case 's':
+			if (flags.openhackerspace){
+				serputs(statuso);
+			} else {
+				serputs(statusc);
+			}
 		default:
 			flags.dooropenstage1 = 0;
 			break;

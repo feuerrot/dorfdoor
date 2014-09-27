@@ -3,6 +3,7 @@
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
 #include <util/delay.h>
+#include "rs232.h"
 
 #define DEBUG 0
 
@@ -21,7 +22,7 @@ volatile uint8_t resetoverflow;
 	char dooror2[]		=	"* ssh stage 2, opened\n";
 	char dooror3[]		=	"* stage error\n";
 	char dooropened[]	=	"* door opened via switch\n";
-	char bell[]			=	"* someone is at the door\n";
+	char bell[]		=	"* someone is at the door\n";
 	char resetof[] 		=	"* stage resetted\n";
 	char statuso[]		=	"STATUS: OPEN\n";
 	char status[]		=	"STATUS: CLOSED\n";
@@ -33,7 +34,7 @@ volatile uint8_t resetoverflow;
 	char dooror2[]		=	"2";	// ssh stage 2
 	char dooror3[]		=	"e";	// ssh error
 	char dooropened[]	=	"s";	// open via switch
-	char bell[]			=	"b";	// bell
+	char bell[]		=	"b";	// bell
 	char resetof[]		=	"r";	// ssh stage reset
 	char statuso[]		=	"SO";
 	char statusc[]		=	"SC";
@@ -53,7 +54,7 @@ volatile struct {
 uint8_t enc_delta_old;
 
 void init(void){
-	usart_init();
+	_usart_init();
 
 	DDRC  |= (1<<PC0)|(1<<PC1)|(1<<PC2)|(1<<PC3);
 	DDRD  |= (1<<PD3)|(1<<PD4);
@@ -68,7 +69,7 @@ void init(void){
 	TIMSK |= (1<<TOIE2);
 
 	sei();
-	serputs(resettext);
+	_serputs(resettext);
 }
 
 void laa(uint8_t state){
@@ -87,11 +88,11 @@ int main(void) {
 			if (flags.openhackerspace){
 				PORTD |= (1<<PD4);
 				laa(1);
-				serputs(openhs);
+				_serputs(openhs);
 			} else {
 				PORTD &= ~(1<<PD4);
 				laa(0);
-				serputs(closedhs);
+				_serputs(closedhs);
 			}
 		}
 		if (flags.openhackerspace){
@@ -105,17 +106,17 @@ int main(void) {
 				_delay_ms(300);
 				PORTD |= (1<<PD4);
 				laa(1);
-				serputs(dooropened);
+				_serputs(dooropened);
 			}
 		} else {
 			if (!(PIND & (1<<PD2)) && flags.bell == 0){
-				serputs(bell);
+				_serputs(bell);
 				flags.bell = 1;
 				//Klingelfunktion
 			}
 		}
 		if (flags.dooropenstage2){
-			serputs(dooror2);
+			_serputs(dooror2);
 			flags.dooropenstage2 = 0;
 			PORTD |= (1<<PD3);
 			_delay_ms(100);
@@ -145,10 +146,10 @@ ISR(USART_RXC_vect){
 			break;
 		case 'd':
 			if (flags.dooropenstage1){
-				serputs(dooror3);
+				_serputs(dooror3);
 			} else {
 				flags.dooropenstage1 = 1;
-				serputs(dooror1);
+				_serputs(dooror1);
 			}
 			break;
 		case 'b':
@@ -156,7 +157,7 @@ ISR(USART_RXC_vect){
 				flags.dooropenstage2 = 1;
 				flags.dooropenstage1 = 0;
 			} else {
-				serputs(dooror3);
+				_serputs(dooror3);
 			}
 			break;
 		case 'o':
@@ -167,9 +168,9 @@ ISR(USART_RXC_vect){
 			break;
 		case 's':
 			if (flags.openhackerspace){
-				serputs(statuso);
+				_serputs(statuso);
 			} else {
-				serputs(statusc);
+				_serputs(statusc);
 			}
 		default:
 			flags.dooropenstage1 = 0;
@@ -196,7 +197,7 @@ ISR(TIMER2_OVF_vect){
 		flags.dooropenstage1 = 0;
 		flags.dooropenstage2 = 0;
 		flags.bell = 0;
-		serputs(resetof);
+		_serputs(resetof);
 	}
 	resetoverflow++;
 }

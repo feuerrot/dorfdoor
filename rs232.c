@@ -5,7 +5,7 @@
 #define BAUD 115200UL      // Baudrate
 #include <util/setbaud.h>  // Das util setzt die Baudrate automatisch
 
-void serputs(char *s){
+void _serputs(char *s){
     while (*s){
         while (!(UCSRA & (1<<UDRE))){}
         UDR = *s;
@@ -13,7 +13,7 @@ void serputs(char *s){
     }
 }
 
-void usart_init(void){ //USART init
+void _usart_init(void){ //USART init
     UBRRH = UBRRH_VALUE;  // Übernimmt die Werte von util/setbaud.h in das passende Register
     UBRRL = UBRRL_VALUE;  // Übernimmt die Werte von util/setbaud.h in das passende Register
     #if USE_2X  // U2X-Modus erforderlich

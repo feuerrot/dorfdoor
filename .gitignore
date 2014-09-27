@@ -10,3 +10,4 @@ main.s
 main.d
 main.i
 .dep
+daemon

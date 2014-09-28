@@ -5,43 +5,32 @@
 #include <util/delay.h>
 #include "rs232.h"
 
-#define DEBUG 0
-
-#define ENC_A (PIND & (1<<PIND5))
-#define ENC_B (PIND & (1<<PIND6))
-#define ENC_T (PIND & (1<<PIND7))
-volatile uint8_t enc_delta;
 volatile uint8_t lastchar;
 volatile uint8_t resetoverflow;
 
-#if DEBUG
-	char resettext[]	=	"[x] Reset\n";
-	char openhs[]		=	"* hackerspace opened\n";
-	char closedhs[]		=	"* hackerspace closed\n";
-	char dooror1[]		=	"* ssh stage 1\n";
-	char dooror2[]		=	"* ssh stage 2, opened\n";
-	char dooror3[]		=	"* stage error\n";
-	char dooropened[]	=	"* door opened via switch\n";
-	char bell[]		=	"* someone is at the door\n";
-	char resetof[] 		=	"* stage resetted\n";
-	char statuso[]		=	"STATUS: OPEN\n";
-	char status[]		=	"STATUS: CLOSED\n";
-#else
-	char resettext[]	=	"p";	// power on
-	char openhs[]		=	"o";	// hackerspace open
-	char closedhs[]		=	"c";	// hackerspace closed
-	char dooror1[]		=	"1";	// ssh stage 1
-	char dooror2[]		=	"2";	// ssh stage 2
-	char dooror3[]		=	"e";	// ssh error
-	char dooropened[]	=	"s";	// open via switch
-	char bell[]		=	"b";	// bell
-	char resetof[]		=	"r";	// ssh stage reset
-	char statuso[]		=	"SO";
-	char statusc[]		=	"SC";
-#endif
+char resettext[]	=	"p";	// power on
+char openhs[]		=	"o";	// hackerspace open
+char closedhs[]		=	"c";	// hackerspace closed
+char dooror1[]		=	"1";	// ssh stage 1
+char dooror2[]		=	"2";	// ssh stage 2
+char dooror3[]		=	"e";	// ssh error
+char dooropened[]	=	"s";	// open via switch
+char bell[]		=	"b";	// bell
+char resetof[]		=	"r";	// ssh stage reset
+char statuso[]		=	"SO";
+char statusc[]		=	"SC";
 
 uint8_t toggledoor;
 #define DOORTOGGLE 20
+
+#define SWITCH_MODE	PD5
+#define SWITCH_OUT	PD6
+#define SWITCH_IN	PD7
+#define DOOR_DAYMODE	PC2
+#define DOOR_POWER	PC0
+#define DOOR_OPEN	PC1
+#define LED_OUT		PC4
+#define LED_IN		PC3
 
 volatile struct {
 	unsigned dooropenstage1:1;
@@ -51,20 +40,25 @@ volatile struct {
 	unsigned bell:1;
 } flags;
 
-uint8_t enc_delta_old;
-
 void init(void){
 	_usart_init();
 
-	DDRC  |= (1<<PC0)|(1<<PC1)|(1<<PC2)|(1<<PC3);
-	DDRD  |= (1<<PD3)|(1<<PD4);
-	DDRD  &= ~((1<<PD2)|(1<<PD5)|(1<<PD6)|(1<<PD7));
-	PORTD |= (1<<PD2)|(1<<PD5)|(1<<PD6)|(1<<PD7);
+	/* Protipp:
+	 * Der Defaultzustand von PORT- und DDR-Registern ist 0x00.
+	 * D.h.: Schaltfunktion bei Output = low ist eine scheiß Idee.
+	 *
+	 * Hier fixen wir das, indem wir erstmal einen Pullup machen und
+	 * dann den Pin auf high schalten.
+	 */
+	PORTC |= (1<<DOOR_OPEN);
+	DDRC  |= (1<<DOOR_OPEN);
+
+	DDRC  |= (1<<DOOR_DAYMODE)|(1<<DOOR_POWER)|(1<<LED_OUT)|(1<<LED_IN);
+	PORTC |= (1<<DOOR_DAYMODE)|(1<<LED_OUT)|(1<<LED_IN);
+
+	PORTD |= (1<<SWITCH_MODE)|(1<<SWITCH_OUT)|(1<<SWITCH_IN);
 
 	_delay_ms(10);
-	TCCR0 |= (1<<CS01);
-	TIMSK |= (1<<TOIE0);
-
 	TCCR2 |= (1<<CS22)|(1<<CS21);
 	TIMSK |= (1<<TOIE2);
 
@@ -72,11 +66,12 @@ void init(void){
 	_serputs(resettext);
 }
 
-void laa(uint8_t state){
-	if (state)
-		PORTC |= 0b1111;
-	else
-		PORTC &= ~0b1111;
+void setled(int led){
+	if (led){
+		PORTC &= ~((1<<LED_OUT)|(1<<LED_IN));
+	} else {
+		PORTC |= (1<<LED_OUT)|(1<<LED_IN);
+	}
 }
 
 int main(void) {
@@ -86,30 +81,27 @@ int main(void) {
 		if (flags.openhackerspace != flags.openhackerspaceold){
 			flags.openhackerspaceold = flags.openhackerspace;
 			if (flags.openhackerspace){
-				PORTD |= (1<<PD4);
-				laa(1);
+				setled(1);
 				_serputs(openhs);
 			} else {
-				PORTD &= ~(1<<PD4);
-				laa(0);
+				setled(0);
 				_serputs(closedhs);
 			}
 		}
 		if (flags.openhackerspace){
-			if (!(PIND & (1<<PD2))){
-				PORTD |= (1<<PD3);
+			if (!(PIND & ((1<<SWITCH_OUT)|(1<<SWITCH_IN)))){
+				PORTD &= ~(1<<DOOR_OPEN);
 				_delay_ms(10);
-				PORTD &= ~(1<<PD4);
-				laa(0);
+				PORTD |= (1<<DOOR_OPEN);
+				setled(1);
 				_delay_ms(90);
-				PORTD &= ~(1<<PD3);
+				setled(0);
 				_delay_ms(300);
-				PORTD |= (1<<PD4);
-				laa(1);
+				setled(1);
 				_serputs(dooropened);
 			}
 		} else {
-			if (!(PIND & (1<<PD2)) && flags.bell == 0){
+			if (!(PIND & ((1<<SWITCH_OUT)|(1<<SWITCH_IN))) && flags.bell == 0){
 				_serputs(bell);
 				flags.bell = 1;
 				//Klingelfunktion
@@ -118,12 +110,12 @@ int main(void) {
 		if (flags.dooropenstage2){
 			_serputs(dooror2);
 			flags.dooropenstage2 = 0;
-			PORTD |= (1<<PD3);
+			PORTD &= ~(1<<DOOR_OPEN);
 			_delay_ms(100);
-			PORTD &= ~(1<<PD3);
+			PORTD |= (1<<DOOR_OPEN);
 		}
 
-		if (ENC_T){
+		if (PIND & (1<<SWITCH_MODE)){
 			toggledoor = 0;
 		} else {
 			toggledoor++;
@@ -176,20 +168,6 @@ ISR(USART_RXC_vect){
 			flags.dooropenstage1 = 0;
 			break;
     }
-}
-
-ISR(TIMER0_OVF_vect){
-	static char enc_last = 0x01;
-	char i = 0;
-	if(ENC_A)
-		i = 1;
-	if(ENC_B)
-		i ^= 3;						// convert gray to binary
-	i -= enc_last;					// difference new - last
-	if( i & 1 ){					// bit 0 = value (1)
-		enc_last += i;				// store new as next last
-		enc_delta += (i & 2) - 1;	// bit 1 = direction (+/-)
-	}
 }
 
 ISR(TIMER2_OVF_vect){

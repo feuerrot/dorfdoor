@@ -5,9 +5,6 @@
 #include <util/delay.h>
 #include "rs232.h"
 
-volatile uint8_t lastchar;
-volatile uint8_t resetoverflow;
-
 char resettext[]	=	"p";	// power on
 char openhs[]		=	"o";	// hackerspace open
 char closedhs[]		=	"c";	// hackerspace closed
@@ -20,6 +17,7 @@ char resetof[]		=	"r";	// ssh stage reset
 char statuso[]		=	"SO";
 char statusc[]		=	"SC";
 
+volatile uint8_t resetoverflow;
 uint8_t toggledoor;
 #define DOORTOGGLE 20
 
@@ -59,19 +57,30 @@ void init(void){
 	PORTD |= (1<<SWITCH_MODE)|(1<<SWITCH_OUT)|(1<<SWITCH_IN);
 
 	_delay_ms(10);
-	TCCR2 |= (1<<CS22)|(1<<CS21);
-	TIMSK |= (1<<TOIE2);
+	TCCR2B |= (1<<CS22)|(1<<CS21);
+	TIMSK2 |= (1<<TOIE2);
 
 	sei();
 	_serputs(resettext);
 }
 
-void setled(int led){
+void setled(uint8_t led){
 	if (led){
 		PORTC &= ~((1<<LED_OUT)|(1<<LED_IN));
 	} else {
 		PORTC |= (1<<LED_OUT)|(1<<LED_IN);
 	}
+}
+
+void opendoor(void){
+	PORTC &= ~(1<<DOOR_OPEN);
+	_delay_ms(100);
+	PORTC |= (1<<DOOR_OPEN);
+	_serputs(dooropened);
+}
+
+uint8_t input(uint8_t flag){
+	return (!(PIND & (1<<flag)));
 }
 
 int main(void) {
@@ -89,19 +98,17 @@ int main(void) {
 			}
 		}
 		if (flags.openhackerspace){
-			if (!(PIND & ((1<<SWITCH_OUT)|(1<<SWITCH_IN)))){
-				PORTD &= ~(1<<DOOR_OPEN);
-				_delay_ms(10);
-				PORTD |= (1<<DOOR_OPEN);
-				setled(1);
-				_delay_ms(90);
+			if (input(SWITCH_IN) | input(SWITCH_OUT)){
 				setled(0);
-				_delay_ms(300);
+				_delay_ms(50);
 				setled(1);
-				_serputs(dooropened);
+				opendoor();
+				setled(0);
+				_delay_ms(50);
+				setled(1);
 			}
 		} else {
-			if (!(PIND & ((1<<SWITCH_OUT)|(1<<SWITCH_IN))) && flags.bell == 0){
+			if ((input(SWITCH_IN) | input(SWITCH_OUT)) && flags.bell == 0){
 				_serputs(bell);
 				flags.bell = 1;
 				//Klingelfunktion
@@ -110,15 +117,13 @@ int main(void) {
 		if (flags.dooropenstage2){
 			_serputs(dooror2);
 			flags.dooropenstage2 = 0;
-			PORTD &= ~(1<<DOOR_OPEN);
-			_delay_ms(100);
-			PORTD |= (1<<DOOR_OPEN);
+			opendoor();
 		}
 
-		if (PIND & (1<<SWITCH_MODE)){
-			toggledoor = 0;
-		} else {
+		if (input(SWITCH_MODE)){
 			toggledoor++;
+		} else {
+			toggledoor = 0;
 		}
 		if (toggledoor > DOORTOGGLE){
 			flags.openhackerspace ^= 1;
@@ -130,11 +135,11 @@ int main(void) {
 	return 0;
 }
 
-ISR(USART_RXC_vect){
-    uint8_t chr = UDR;
+ISR(USART_RX_vect){
+    uint8_t chr = UDR0;
     switch (chr){
 		case 'r':
-        	wdt_enable(WDTO_1S);
+		       	wdt_enable(WDTO_1S);
 			break;
 		case 'd':
 			if (flags.dooropenstage1){

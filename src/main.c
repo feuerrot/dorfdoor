@@ -38,6 +38,12 @@ volatile struct {
 	unsigned bell:1;
 } flags;
 
+#define CMD_OPEN_LOCK      0x10cd
+#define CMD_OPEN_TF        0x11d0
+#define CMD_OPEN_TF_HOLD   0x12f7
+#define CMD_LOCK           0x14b9
+#define CMD_UNLOCK         0x179e
+
 void init(void){
 	_usart_init();
 
@@ -64,6 +70,42 @@ void init(void){
 	_serputs(resettext);
 }
 
+static void send_door_halfbit(int v) {
+	if (!v) {
+		PORTC &= ~(1 << DOOR_DATA);
+	} else {
+		PORTC |= (1 << DOOR_DATA);
+	}
+	_delay_us(500);
+}
+
+static void send_door_cmd(uint16_t word) {
+	cli();
+
+	for (int rep = 1; rep <= 11; rep++) {
+		send_door_halfbit(0);
+
+		for (signed int i = 15; i >= 0; i--) {
+			if (word & ((uint16_t)1 << i)) {
+				/* bit set */
+				send_door_halfbit(1);
+				send_door_halfbit(0);
+			} else {
+				send_door_halfbit(0);
+				send_door_halfbit(1);
+			}
+		}
+
+		/* release bus */
+		send_door_halfbit(1);
+
+		/* packet delay */
+		_delay_us(2500);
+	}
+
+	sei();
+}
+
 void setled(uint8_t led){
 	if (led){
 		PORTC &= ~((1<<LED_OUT)|(1<<LED_IN));
@@ -73,9 +115,12 @@ void setled(uint8_t led){
 }
 
 void opendoor(void){
-	PORTC &= ~(1<<DOOR_OPEN);
+	if (flags.openhackerspace) {
+		send_door_cmd(CMD_OPEN_TF);
+	} else {
+		send_door_cmd(CMD_OPEN_LOCK);
+	}
 	_delay_ms(100);
-	PORTC |= (1<<DOOR_OPEN);
 	_serputs(dooropened);
 }
 
@@ -90,9 +135,11 @@ int main(void) {
 		if (flags.openhackerspace != flags.openhackerspaceold){
 			flags.openhackerspaceold = flags.openhackerspace;
 			if (flags.openhackerspace){
+				send_door_cmd(CMD_UNLOCK);
 				setled(1);
 				_serputs(openhs);
 			} else {
+				send_door_cmd(CMD_LOCK);
 				setled(0);
 				_serputs(closedhs);
 			}

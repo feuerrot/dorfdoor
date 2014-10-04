@@ -1,3 +1,4 @@
+# build
 *.hex
 *.eep
 *.cof
@@ -10,4 +11,11 @@ main.s
 main.d
 main.i
 .dep
-daemon
+
+# todo: daemonrewrite
+src/daemon
+
+# eagle
+*.b\#?
+*.s\#?
+eagle.epf

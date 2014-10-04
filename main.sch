@@ -8146,18 +8146,6 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <label x="160.02" y="83.82" size="1.778" layer="95" rot="R180"/>
 </segment>
 </net>
-<net name="DOOR_DAYMODE" class="0">
-<segment>
-<pinref part="IC1" gate="G$1" pin="PC2(ADC2)"/>
-<wire x1="121.92" y1="101.6" x2="124.46" y2="101.6" width="0.1524" layer="91"/>
-<label x="124.46" y="101.6" size="1.778" layer="95"/>
-</segment>
-<segment>
-<wire x1="160.02" y1="86.36" x2="162.56" y2="86.36" width="0.1524" layer="91"/>
-<pinref part="CON2" gate="G$1" pin="3"/>
-<label x="160.02" y="86.36" size="1.778" layer="95" rot="R180"/>
-</segment>
-</net>
 <net name="LED_IN" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="PC3(ADC3)"/>
@@ -8319,7 +8307,7 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <junction x="274.32" y="55.88"/>
 </segment>
 </net>
-<net name="DOOR_DAYMODE_+" class="0">
+<net name="DOOR_DATA_+" class="0">
 <segment>
 <wire x1="276.86" y1="76.2" x2="274.32" y2="76.2" width="0.1524" layer="91"/>
 <label x="276.86" y="76.2" size="1.778" layer="95"/>
@@ -8328,7 +8316,7 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <junction x="274.32" y="76.2"/>
 </segment>
 </net>
-<net name="DOOR_DAYMODE_-" class="0">
+<net name="DOOR_DATA_-" class="0">
 <segment>
 <wire x1="276.86" y1="71.12" x2="274.32" y2="71.12" width="0.1524" layer="91"/>
 <label x="276.86" y="71.12" size="1.778" layer="95"/>
@@ -8475,18 +8463,6 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <label x="200.66" y="88.9" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="_DOOR_DAYMODE" class="0">
-<segment>
-<pinref part="R4" gate="G$1" pin="2"/>
-<wire x1="241.3" y1="71.12" x2="238.76" y2="71.12" width="0.1524" layer="91"/>
-<label x="238.76" y="71.12" size="1.778" layer="95" rot="R180"/>
-</segment>
-<segment>
-<wire x1="198.12" y1="86.36" x2="200.66" y2="86.36" width="0.1524" layer="91"/>
-<pinref part="CON2_" gate="G$1" pin="3"/>
-<label x="200.66" y="86.36" size="1.778" layer="95"/>
-</segment>
-</net>
 <net name="_DOOR_OPEN" class="0">
 <segment>
 <pinref part="R3" gate="G$1" pin="2"/>
@@ -8621,6 +8597,30 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <pinref part="R13" gate="G$1" pin="1"/>
 <wire x1="322.58" y1="50.8" x2="320.04" y2="50.8" width="0.1524" layer="91"/>
 <wire x1="320.04" y1="50.8" x2="320.04" y2="48.26" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="DOOR_DATA" class="0">
+<segment>
+<pinref part="IC1" gate="G$1" pin="PC2(ADC2)"/>
+<wire x1="121.92" y1="101.6" x2="124.46" y2="101.6" width="0.1524" layer="91"/>
+<label x="124.46" y="101.6" size="1.778" layer="95"/>
+</segment>
+<segment>
+<wire x1="160.02" y1="86.36" x2="162.56" y2="86.36" width="0.1524" layer="91"/>
+<pinref part="CON2" gate="G$1" pin="3"/>
+<label x="160.02" y="86.36" size="1.778" layer="95" rot="R180"/>
+</segment>
+</net>
+<net name="_DOOR_DATA" class="0">
+<segment>
+<wire x1="198.12" y1="86.36" x2="200.66" y2="86.36" width="0.1524" layer="91"/>
+<pinref part="CON2_" gate="G$1" pin="3"/>
+<label x="200.66" y="86.36" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="R4" gate="G$1" pin="2"/>
+<wire x1="241.3" y1="71.12" x2="238.76" y2="71.12" width="0.1524" layer="91"/>
+<label x="238.76" y="71.12" size="1.778" layer="95" rot="R180"/>
 </segment>
 </net>
 </nets>

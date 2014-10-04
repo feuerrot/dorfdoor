@@ -24,7 +24,7 @@ uint8_t toggledoor;
 #define SWITCH_MODE	PD5
 #define SWITCH_OUT	PD6
 #define SWITCH_IN	PD7
-#define DOOR_DAYMODE	PC2
+#define DOOR_DATA	PC2
 #define DOOR_POWER	PC0
 #define DOOR_OPEN	PC1
 #define LED_OUT		PC4
@@ -51,8 +51,8 @@ void init(void){
 	PORTC |= (1<<DOOR_OPEN);
 	DDRC  |= (1<<DOOR_OPEN);
 
-	DDRC  |= (1<<DOOR_DAYMODE)|(1<<DOOR_POWER)|(1<<LED_OUT)|(1<<LED_IN);
-	PORTC |= (1<<DOOR_DAYMODE)|(1<<LED_OUT)|(1<<LED_IN);
+	DDRC  |= (1<<DOOR_DATA)|(1<<DOOR_POWER)|(1<<LED_OUT)|(1<<LED_IN);
+	PORTC |= (1<<DOOR_DATA)|(1<<LED_OUT)|(1<<LED_IN);
 
 	PORTD |= (1<<SWITCH_MODE)|(1<<SWITCH_OUT)|(1<<SWITCH_IN);
 

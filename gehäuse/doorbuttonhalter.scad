@@ -85,4 +85,6 @@ translate([x-0.1,y-2,0]) rotate([0,-90,-90]) difference(){
 	translate([5,5,0]) cylinder(h=2, d1=6, d2=3);
 	translate([z-5,5,0]) cylinder(h=2, d1=6, d2=3);
 }
+translate([25,0,0]) cube([0.3,y,z]);
+translate([x-25,0,0]) cube([0.3,y,z]);
 }

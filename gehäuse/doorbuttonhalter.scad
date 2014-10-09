@@ -4,6 +4,8 @@ x = 70;
 y = 25;
 z = 50;
 
+
+union(){
 difference(){
 	cube([x,y,z]);
 	
@@ -18,7 +20,9 @@ difference(){
 
 	//Taster links
 	translate([y/2,y/2,z-2]) cylinder(h=2, r=4.5);
+	translate([12.5,12.5,40]) cylinder(h=8, r=11);
 	translate([15,15,40]) cylinder(h=8, r=y/2);
+	translate([12.5,12.5,2]) cylinder(h=36, r=11);
 	translate([15,15,2]) cylinder(h=36, r=y/2);
 	translate([y/2, y/2, 2]) difference(){
 		cube([y/2,y/2,z-4]);
@@ -32,7 +36,9 @@ difference(){
 
 	//Taster rechts
 	translate([x-y/2,y/2,z-2]) cylinder(h=2, r=4.5);
+	translate([x-12.5,12.5,40]) cylinder(h=8, r=11);
 	translate([x-15,15,40]) cylinder(h=8, r=y/2);
+	translate([x-12.5,12.5,2]) cylinder(h=36, r=11);
 	translate([x-15,15,2]) cylinder(h=36, r=y/2);
 	translate([x-y/2-0.01,y/2, 2]) rotate([0,0,90]) difference(){
 		cube([y/2,y/2,z-4]);
@@ -52,4 +58,31 @@ difference(){
 
 	//Kabelauslass
 	translate([x/2-10, y-2.5, 0]) cube([20,2.5,2]);
+}
+translate([-10-0.1,y-2,0]) rotate([0,-90,-90]) difference(){
+	cube([z,10,2]);
+	difference(){
+		translate([-2.5,-2.5,0]) cube([5,5,2]);
+		translate([2.5,2.5,0]) cylinder(h=2.1,r=2.5);
+	}
+	translate([z,0,0]) rotate([0,0,90]) difference(){
+		translate([-2.5,-2.5,0]) cube([5,5,2]);
+		translate([2.5,2.5,0]) cylinder(h=2.1,r=2.5);
+	}
+	translate([5,5,0]) cylinder(h=2, d1=6, d2=3);
+	translate([z-5,5,0]) cylinder(h=2, d1=6, d2=3);
+}
+translate([x-0.1,y-2,0]) rotate([0,-90,-90]) difference(){
+	cube([z,10,2]);
+	translate([0,10,0]) rotate([0,0,-90]) difference(){
+		translate([-2.5,-2.5,0]) cube([5,5,2]);
+		translate([2.5,2.5,0]) cylinder(h=2.1,r=2.5);
+	}
+	translate([z,10,0]) rotate([0,0,180]) difference(){
+		translate([-2.5,-2.5,0]) cube([5,5,2]);
+		translate([2.5,2.5,0]) cylinder(h=2.1,r=2.5);
+	}
+	translate([5,5,0]) cylinder(h=2, d1=6, d2=3);
+	translate([z-5,5,0]) cylinder(h=2, d1=6, d2=3);
+}
 }

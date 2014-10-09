@@ -59,7 +59,7 @@ difference(){
 	//Kabelauslass
 	translate([x/2-10, y-2.5, 0]) cube([20,2.5,2]);
 }
-translate([-10-0.1,y-2,0]) rotate([0,-90,-90]) difference(){
+translate([-10+0.1,y-2,0]) rotate([0,-90,-90]) difference(){
 	cube([z,10,2]);
 	difference(){
 		translate([-2.5,-2.5,0]) cube([5,5,2]);

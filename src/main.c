@@ -22,7 +22,7 @@ uint8_t toggledoor;
 #define DOORTOGGLE 20
 
 #define SWITCH_RED	PD2 // Taster Rot
-#define SWITCH_MODE	PD5 // Taster Grün
+#define SWITCH_GREEN	PD5 // Taster Grün
 #define SWITCH_OUT	PD6
 #define SWITCH_IN	PD7
 #define DOOR_DATA	PC2
@@ -61,7 +61,7 @@ void init(void){
 	DDRC  |= (1<<DOOR_DATA)|(1<<DOOR_POWER)|(1<<LED_OUT)|(1<<LED_IN);
 	PORTC |= (1<<DOOR_DATA)|(1<<LED_OUT)|(1<<LED_IN);
 
-	PORTD |= (1<<SWITCH_MODE)|(1<<SWITCH_OUT)|(1<<SWITCH_IN);
+	PORTD |= (1<<SWITCH_GREEN)|(1<<SWITCH_RED)|(1<<SWITCH_OUT)|(1<<SWITCH_IN);
 
 	_delay_ms(10);
 	TCCR2B |= (1<<CS22)|(1<<CS21);
@@ -211,13 +211,15 @@ int main(void) {
 			opendoor();
 		}
 
-		if (input(SWITCH_MODE)){
+		if (input(SWITCH_GREEN)|input(SWITCH_RED)){
 			toggledoor++;
 		} else {
 			toggledoor = 0;
 		}
 		if (toggledoor > DOORTOGGLE){
-			flags.openhackerspace ^= 1;
+			if ((flags.openhackerspace == 0 && input(SWITCH_GREEN))||(flags.openhackerspace == 1 && input(SWITCH_RED))){
+				flags.openhackerspace ^= 1;
+			}
 			toggledoor = 0;
 		}
 

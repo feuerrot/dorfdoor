@@ -21,14 +21,15 @@ volatile uint8_t resetoverflow;
 uint8_t toggledoor;
 #define DOORTOGGLE 20
 
-#define SWITCH_MODE	PD5
+#define SWITCH_RED	PD2 // Taster Rot
+#define SWITCH_MODE	PD5 // Taster Grün
 #define SWITCH_OUT	PD6
 #define SWITCH_IN	PD7
 #define DOOR_DATA	PC2
 #define DOOR_POWER	PC0
 #define DOOR_OPEN	PC1
-#define LED_OUT		PC4
-#define LED_IN		PC3
+#define LED_OUT		PC4 // normale LED im Außentaster
+#define LED_IN		PC3 // sind die WS2812b
 
 volatile struct {
 	unsigned dooropenstage1:1;
@@ -70,6 +71,41 @@ void init(void){
 	_serputs(resettext);
 }
 
+void ws2812bit(uint8_t bit){
+	PORTC |= (1<<LED_IN);
+	if (bit){
+		_delay_us(0.85);
+		PORTC &= ~(1<<LED_IN);
+		_delay_us(0.35);
+	} else {
+		_delay_us(0.35);
+		PORTC &= ~(1<<LED_IN);
+		_delay_us(0.85);
+	}
+}
+
+void led_r(void){
+	for (int i=7; i>=0; i--){
+		ws2812bit(0);
+	}
+	for (int i=7; i>=0; i--){
+		ws2812bit(1);
+	}
+	for (int i=7; i>=0; i--){
+		ws2812bit(0);
+	}
+}
+
+void led_g(void){
+	for (int i=7; i>=0; i--){
+		ws2812bit(1);
+	}
+	for (int i=13; i>=0; i--){
+		ws2812bit(0);
+	}
+}
+
+
 static void send_door_halfbit(int v) {
 	if (!v) {
 		PORTC &= ~(1 << DOOR_DATA);
@@ -108,9 +144,11 @@ static void send_door_cmd(uint16_t word) {
 
 void setled(uint8_t led){
 	if (led){
-		PORTC &= ~((1<<LED_OUT)|(1<<LED_IN));
+		PORTC &= ~(1<<LED_OUT);
+		led_g();
 	} else {
-		PORTC |= (1<<LED_OUT)|(1<<LED_IN);
+		PORTC |= (1<<LED_OUT);
+		led_r();
 	}
 }
 

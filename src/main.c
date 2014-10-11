@@ -146,8 +146,12 @@ void setled(uint8_t led){
 	if (led){
 		PORTC &= ~(1<<LED_OUT);
 		led_g();
+		led_g();
+		led_g();
 	} else {
 		PORTC |= (1<<LED_OUT);
+		led_r();
+		led_r();
 		led_r();
 	}
 }

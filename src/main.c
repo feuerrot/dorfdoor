@@ -143,6 +143,7 @@ static void send_door_cmd(uint16_t word) {
 }
 
 void setled(uint8_t led){
+	cli();
 	if (led){
 		PORTC &= ~(1<<LED_OUT);
 		led_g();
@@ -154,6 +155,7 @@ void setled(uint8_t led){
 		led_r();
 		led_r();
 	}
+	sei();
 }
 
 void opendoor(void){

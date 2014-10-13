@@ -45,32 +45,6 @@ volatile struct {
 #define CMD_LOCK           0x14b9
 #define CMD_UNLOCK         0x179e
 
-void init(void){
-	_usart_init();
-
-	/* Protipp:
-	 * Der Defaultzustand von PORT- und DDR-Registern ist 0x00.
-	 * D.h.: Schaltfunktion bei Output = low ist eine scheiß Idee.
-	 *
-	 * Hier fixen wir das, indem wir erstmal einen Pullup machen und
-	 * dann den Pin auf high schalten.
-	 */
-	PORTC |= (1<<DOOR_OPEN);
-	DDRC  |= (1<<DOOR_OPEN);
-
-	DDRC  |= (1<<DOOR_DATA)|(1<<DOOR_POWER)|(1<<LED_OUT)|(1<<LED_IN);
-	PORTC |= (1<<DOOR_DATA)|(1<<LED_OUT)|(1<<LED_IN);
-
-	PORTD |= (1<<SWITCH_GREEN)|(1<<SWITCH_RED)|(1<<SWITCH_OUT)|(1<<SWITCH_IN);
-
-	_delay_ms(10);
-	TCCR2B |= (1<<CS22)|(1<<CS21);
-	TIMSK2 |= (1<<TOIE2);
-
-	sei();
-	_serputs(resettext);
-}
-
 void ws2812bit(uint8_t bit){
 	PORTC |= (1<<LED_IN);
 	if (bit){
@@ -170,6 +144,34 @@ void opendoor(void){
 
 uint8_t input(uint8_t flag){
 	return (!(PIND & (1<<flag)));
+}
+
+void init(void){
+	_usart_init();
+
+	/* Protipp:
+	 * Der Defaultzustand von PORT- und DDR-Registern ist 0x00.
+	 * D.h.: Schaltfunktion bei Output = low ist eine scheiß Idee.
+	 *
+	 * Hier fixen wir das, indem wir erstmal einen Pullup machen und
+	 * dann den Pin auf high schalten.
+	 */
+	PORTC |= (1<<DOOR_OPEN);
+	DDRC  |= (1<<DOOR_OPEN);
+
+	DDRC  |= (1<<DOOR_DATA)|(1<<DOOR_POWER)|(1<<LED_OUT)|(1<<LED_IN);
+	PORTC |= (1<<DOOR_DATA)|(1<<LED_OUT)|(1<<LED_IN);
+
+	PORTD |= (1<<SWITCH_GREEN)|(1<<SWITCH_RED)|(1<<SWITCH_OUT)|(1<<SWITCH_IN);
+
+	_delay_ms(10);
+	TCCR2B |= (1<<CS22)|(1<<CS21);
+	TIMSK2 |= (1<<TOIE2);
+
+	setled(0);
+
+	sei();
+	_serputs(resettext);
 }
 
 int main(void) {
